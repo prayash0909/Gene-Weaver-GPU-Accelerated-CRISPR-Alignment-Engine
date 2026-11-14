@@ -26,6 +26,25 @@ def hamming_distance(sequence_a, sequence_b):
     )
 
 
+def _hamming_distance_with_limit(
+    sequence_a,
+    sequence_b,
+    max_mismatches
+):
+    """Stop counting when the mismatch limit is exceeded."""
+
+    mismatches = 0
+
+    for base_a, base_b in zip(sequence_a, sequence_b):
+        if base_a != base_b:
+            mismatches += 1
+
+            if mismatches > max_mismatches:
+                return None
+
+    return mismatches
+
+
 def find_approximate_matches(
     target_sequence,
     genome_records,
@@ -81,9 +100,13 @@ def find_approximate_matches(
         for position in range(len(sequence) - target_length + 1):
             candidate = sequence[position:position + target_length]
 
-            distance = hamming_distance(target, candidate)
+            distance = _hamming_distance_with_limit(
+                target,
+                candidate,
+                max_mismatches
+            )
 
-            if distance <= max_mismatches:
+            if distance is not None:
                 mismatch_positions = [
                     index
                     for index, (a, b) in enumerate(zip(target, candidate))

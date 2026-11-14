@@ -1,5 +1,6 @@
 
 from typing import Any, cast
+from src.geneweaver.scoring import _hamming_distance_with_limit
 
 import pytest
 
@@ -119,3 +120,11 @@ def test_target_longer_than_genome_returns_no_match():
     records = [{"id": "gene_001", "sequence": "ATG"}]
 
     assert find_approximate_matches("ATGC", records) == []
+def test_early_exit_returns_none_when_limit_is_exceeded():
+    result = _hamming_distance_with_limit("AAAA", "TTTT", 1)
+    assert result is None
+
+
+def test_early_exit_returns_mismatch_count_within_limit():
+    result = _hamming_distance_with_limit("AAAA", "AATA", 1)
+    assert result == 1
