@@ -1,21 +1,20 @@
 # GeneWeaver: GPU-Accelerated CRISPR Alignment Engine
 
-GeneWeaver is a bioinformatics and high-performance computing project designed to identify potential CRISPR off-target DNA sequences in large genomic FASTA files.
+GeneWeaver is a Bioinformatics and High-Performance Computing project for identifying potential CRISPR off-target DNA sequences.
 
-## Project Overview
+## Features
 
-The goal is to build an efficient sequence alignment pipeline that processes genomic data, compares target DNA sequences, and identifies potential off-target matches.
-
-## Key Features
-
-- FASTA genome parsing using BioPython
-- DNA sequence cleaning and chunking
-- Pure Python CPU alignment baseline
-- NumPy-based sequence processing
-- Numba-based computational acceleration
-- Dask-based distributed processing
-- Textual terminal dashboard
-- Off-target scoring and ranking
+- FASTA parsing and DNA validation using BioPython
+- DNA sequence chunking
+- Python CPU alignment baseline
+- Numba-accelerated approximate matching
+- Optional NVIDIA CUDA alignment
+- CPU fallback when CUDA is unavailable
+- Dask-based parallel genome scanning
+- SpCas9 PAM detection
+- CRISPR candidate scoring and ranking
+- End-to-end analysis pipeline
+- Automated tests and performance benchmarks
 
 ## Technology Stack
 
@@ -27,37 +26,48 @@ The goal is to build an efficient sequence alignment pipeline that processes gen
 - Textual
 - Pytest
 
-## Project Structure
+## Running the Project
 
-```text
-GeneWeaver/
-├── data/
-│   ├── input/
-│   └── samples/
-├── src/
-│   └── geneweaver/
-│       ├── parser.py
-│       ├── cpu_aligner.py
-│       ├── gpu_aligner.py
-│       ├── scoring.py
-│       └── scheduler.py
-├── tests/
-├── benchmarks/
-├── tui/
-├── docs/
-├── requirements.txt
-└── README.md
+Run the pipeline:
+
+```bash
+python run_pipeline.py
 ```
+
+Run tests:
+
+```bash
+python -m pytest -q
+```
+
+Run the benchmark:
+
+```bash
+python benchmarks/benchmark_pipeline.py
+```
+
+## Benchmark Results
+
+Local synthetic CPU benchmark:
+
+- Genome records: 8
+- Total DNA bases: 160,368
+- Benchmark runs: 7
+- Candidates detected: 16
+- Result verification: Passed
+
+Execution time varies depending on system load and hardware.
 
 ## Hardware Note
 
-Local development currently uses an Intel Iris Xe Graphics system. NVIDIA CUDA execution is not available on this machine. GPU acceleration will be evaluated on a compatible NVIDIA CUDA environment. CPU execution will serve as the baseline.
+Local development uses Intel Iris Xe Graphics. NVIDIA CUDA execution is unavailable on this machine. The optional CUDA path has not been validated locally. CPU execution is used for local testing.
 
 ## Project Status
 
-Currently in the initial setup and CPU baseline development phase.
+Core FASTA parsing, CPU alignment, approximate matching, PAM detection, candidate ranking, parallel scanning, and end-to-end pipeline integration have been implemented and tested.
 
 ## Internship Project
 
-Infotact Solutions | Python Development Internship  
-Project Duration: 10 November 2026 – 10 December 2026
+Infotact Solutions | Python Development Internship
+
+Project Duration: 10 November 2026 - 10 December 2026
