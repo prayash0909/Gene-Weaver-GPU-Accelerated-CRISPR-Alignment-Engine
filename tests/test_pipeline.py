@@ -47,10 +47,8 @@ def test_pipeline_ranks_exact_match_first(tmp_path):
         max_mismatches=2,
     )
 
-    candidates = result["candidates"]
-
-    assert candidates[0]["mismatches"] == 0
-    assert candidates[0]["rank"] == 1
+    assert result["candidates"][0]["mismatches"] == 0
+    assert result["candidates"][0]["rank"] == 1
 
 
 def test_pipeline_detects_pam_sites(tmp_path):
@@ -114,7 +112,105 @@ def test_pipeline_rejects_invalid_gpu_option(tmp_path):
 
 def test_pipeline_rejects_missing_fasta():
     with pytest.raises(FileNotFoundError):
+        run_pipeline("missing_genome.fasta", "ATGC")
+
+
+# Day 10: Input validation and edge-case tests.
+
+
+def test_pipeline_accepts_lowercase_target(tmp_path):
+    fasta_file = create_fasta(tmp_path)
+
+    result = run_pipeline(
+        fasta_file,
+        "atgcgtacgtagctagctag",
+    )
+
+    assert result["target_sequence"] == "ATGCGTACGTAGCTAGCTAG"
+
+
+@pytest.mark.parametrize(
+    "target",
+    [
+        "",
+        "ATGX",
+        "ATGC123",
+        "ATGC XYZ",
+        " ATGC",
+        "ATGC ",
+    ],
+)
+def test_pipeline_rejects_invalid_target_sequences(tmp_path, target):
+    fasta_file = create_fasta(tmp_path)
+
+    with pytest.raises(ValueError):
+        run_pipeline(fasta_file, target)
+
+
+def test_pipeline_rejects_non_string_target(tmp_path):
+    fasta_file = create_fasta(tmp_path)
+
+    with pytest.raises(TypeError):
+        run_pipeline(fasta_file, cast(str, 123))
+
+
+@pytest.mark.parametrize("value", [-1, -5])
+def test_pipeline_rejects_negative_mismatch_limit(tmp_path, value):
+    fasta_file = create_fasta(tmp_path)
+
+    with pytest.raises(ValueError):
         run_pipeline(
-            "missing_genome.fasta",
+            fasta_file,
             "ATGC",
+            max_mismatches=value,
         )
+
+
+@pytest.mark.parametrize("value", [2.5, "2", None, True])
+def test_pipeline_rejects_invalid_mismatch_type(tmp_path, value):
+    fasta_file = create_fasta(tmp_path)
+
+    with pytest.raises(TypeError):
+        run_pipeline(
+            fasta_file,
+            "ATGC",
+            max_mismatches=cast(int, value),
+        )
+
+
+def test_pipeline_handles_zero_mismatch_limit(tmp_path):
+    fasta_file = create_fasta(tmp_path)
+
+    result = run_pipeline(
+        fasta_file,
+        "ATGCGTACGTAGCTAGCTAG",
+        max_mismatches=0,
+    )
+
+    assert all(
+        candidate["mismatches"] == 0
+        for candidate in result["candidates"]
+    )
+
+
+def test_pipeline_rejects_empty_fasta(tmp_path):
+    fasta_file = tmp_path / "empty.fasta"
+    fasta_file.write_text("", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="no valid sequence records"):
+        run_pipeline(fasta_file, "ATGC")
+
+
+def test_pipeline_rejects_duplicate_fasta_ids(tmp_path):
+    fasta_file = tmp_path / "duplicate.fasta"
+
+    fasta_file.write_text(
+        ">gene_001 First record\n"
+        "ATGC\n"
+        ">gene_001 Duplicate record\n"
+        "GGCC\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="Duplicate FASTA record ID"):
+        run_pipeline(fasta_file, "ATGC")
